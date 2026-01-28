@@ -63,6 +63,9 @@ KASA_PASSWORD=your_password
 # Optional: Filter by device models (comma-separated)
 KASA_MODELS=KP125M,HS103
 
+# Optional: specify device IP(s) to connect directly (comma-separated)
+KASA_PLUG_IPS=host1,host2
+
 # Optional: Exporter settings
 PORT=4467
 POLL_INTERVAL=10

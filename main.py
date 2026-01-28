@@ -28,6 +28,10 @@ username = os.getenv('KASA_USERNAME')
 password = os.getenv('KASA_PASSWORD')
 model_env = os.getenv('KASA_MODELS')
 models = [m.strip() for m in model_env.split(',') if m.strip()] if model_env else []
+
+plug_ips_env = os.getenv('KASA_PLUG_IPS', default=None)
+plug_ips = [ip.strip() for ip in plug_ips_env.split(',')] if plug_ips_env else []
+
 port = int(os.getenv('PORT', 4467))
 scrape_interval = int(os.getenv('POLL_INTERVAL', 10))
 
@@ -48,9 +52,20 @@ async def discover_devices():
         return {}
     
     try:
-        devices = await Discover.discover(
-            credentials=Credentials(username, password)
-        )
+        if len(plug_ips) == 0:
+            devices = await Discover.discover(
+                credentials=Credentials(username, password)
+            )
+        else:
+            devices = {}
+            for ip in plug_ips:
+                logger.info(f"Discovering device at IP: {ip}")
+                devs = await Discover.discover_single(
+                    host=ip,
+                    credentials=Credentials(username, password)
+                )
+                devices[ip] = devs
+        
         return devices
     except Exception as e:
         logger.error(f"Discovery with credentials failed: {e}")
