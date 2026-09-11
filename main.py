@@ -60,11 +60,15 @@ async def discover_devices():
             devices = {}
             for ip in plug_ips:
                 logger.info(f"Discovering device at IP: {ip}")
-                devs = await Discover.discover_single(
-                    host=ip,
-                    credentials=Credentials(username, password)
-                )
-                devices[ip] = devs
+                try:
+                    dev = await Discover.discover_single(
+                        host=ip,
+                        credentials=Credentials(username, password)
+                    )
+                    devices[ip] = dev
+                except Exception as e:
+                    logger.error(f"Failed to discover device at {ip}: {e}")
+                    continue
         
         return devices
     except Exception as e:
@@ -123,7 +127,8 @@ async def main():
             logger.info(f"Alias: {dev.alias}")
             logger.info(f"Model: {dev.model}")
             
-            if models and dev.model not in models:
+# If plug ips are specified, can ignore checking models, assume the user knows that
+if models and dev.model not in models and len(plug_ips) == 0:
                 logger.warning(f"Skipping {dev.model} and disconnecting, looking for one of: {', '.join([f'\'{m}\'' for m in models])}")
                 await dev.disconnect()
                 continue
